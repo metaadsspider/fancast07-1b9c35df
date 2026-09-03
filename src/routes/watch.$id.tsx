@@ -5,7 +5,7 @@ import { HlsPlayer } from "@/components/HlsPlayer";
 import { MatchCard } from "@/components/MatchCard";
 
 export const Route = createFileRoute("/watch/$id")({
-  head: ({ loaderData }: { loaderData?: FanCodeMatch }) => ({
+  head: ({ loaderData }: { loaderData: FanCodeMatch | undefined }) => ({
     meta: [
       { title: loaderData ? `${loaderData.match_name} — FANCAST` : "Watch Live — FANCAST" },
       {
@@ -47,8 +47,10 @@ export const Route = createFileRoute("/watch/$id")({
 });
 
 function WatchPage() {
-  const match = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
   const { data } = useQuery({ queryKey: ["fancode-feed"], queryFn: fetchFeed });
+  if (!loaderData) return null;
+  const match = loaderData;
   const src = streamUrl(match);
   const others = (data?.matches ?? []).filter((m) => m.match_id !== match.match_id && isLive(m)).slice(0, 3);
 
