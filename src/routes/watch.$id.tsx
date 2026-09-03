@@ -5,7 +5,7 @@ import { HlsPlayer } from "@/components/HlsPlayer";
 import { MatchCard } from "@/components/MatchCard";
 
 export const Route = createFileRoute("/watch/$id")({
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }: { loaderData?: FanCodeMatch }) => ({
     meta: [
       { title: loaderData ? `${loaderData.match_name} — FANCAST` : "Watch Live — FANCAST" },
       {
