@@ -5,44 +5,21 @@ import { HlsPlayer } from "@/components/HlsPlayer";
 import { MatchCard } from "@/components/MatchCard";
 
 export const Route = createFileRoute("/watch/$id")({
-  head: ({ loaderData }: { loaderData: FanCodeMatch | undefined }) => ({
-    meta: [
-      { title: loaderData ? `${loaderData.match_name} — FANCAST` : "Watch Live — FANCAST" },
-      {
-        name: "description",
-        content: loaderData
-          ? `Stream ${loaderData.team_1} vs ${loaderData.team_2} live — ${loaderData.event_name}.`
-          : "Stream live sports on FANCAST.",
-      },
-      {
-        property: "og:title",
-        content: loaderData ? `${loaderData.match_name} — FANCAST` : "Watch Live — FANCAST",
-      },
-      {
-        property: "og:description",
-        content: loaderData
-          ? `Stream ${loaderData.team_1} vs ${loaderData.team_2} live — ${loaderData.event_name}.`
-          : "Stream live sports on FANCAST.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      ...(loaderData?.src?.startsWith("https://")
-        ? [
-            { property: "og:image", content: loaderData.src },
-            { name: "twitter:image", content: loaderData.src },
-          ]
-        : []),
-    ],
-  }),
-  loader: async ({ params, context }) => {
-    const feed = await context.queryClient.ensureQueryData({
-      queryKey: ["fancode-feed"],
-      queryFn: fetchFeed,
-    });
-    const match = feed.matches.find((m) => m.match_id === params.id);
-    if (!match) throw notFound();
-    return match;
-  },
+const watchLoader = async (opts: {
+  params: { id: string };
+  context: { queryClient: QueryClient };
+}): Promise<FanCodeMatch> => {
+  const feed = await opts.context.queryClient.ensureQueryData({
+    queryKey: ["fancode-feed"],
+    queryFn: fetchFeed,
+  });
+  const match = feed.matches.find((m) => m.match_id === opts.params.id);
+  if (!match) throw notFound();
+  return match;
+};
+
+export const Route = createFileRoute("/watch/$id")({
+  head: ({ loaderData }) => ({
   component: WatchPage,
 });
 
