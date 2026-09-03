@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { fetchFeed, isLive, streamUrl } from "@/lib/fancode";
+import { fetchFeed, isLive, streamUrl, type FanCodeMatch } from "@/lib/fancode";
 import { HlsPlayer } from "@/components/HlsPlayer";
 import { MatchCard } from "@/components/MatchCard";
 
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/watch/$id")({
         : []),
     ],
   }),
-  loader: async ({ params, context }) => {
+  loader: async ({ params, context }): Promise<FanCodeMatch> => {
     const feed = await context.queryClient.ensureQueryData({
       queryKey: ["fancode-feed"],
       queryFn: fetchFeed,

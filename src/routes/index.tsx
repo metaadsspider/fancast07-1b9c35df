@@ -27,13 +27,12 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData({
       queryKey: ["fancode-feed"],
       queryFn: fetchFeed,
-      refetchInterval: 60_000,
     }),
   component: Home,
 });
 
 function Home() {
-  const { data } = useQuery({ queryKey: ["fancode-feed"], queryFn: fetchFeed });
+  const { data } = useQuery({ queryKey: ["fancode-feed"], queryFn: fetchFeed, refetchInterval: 60_000 });
   const [category, setCategory] = useState("All");
   const matches = data?.matches ?? [];
   const live = matches.filter(isLive);
