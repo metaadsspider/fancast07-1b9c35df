@@ -34,7 +34,7 @@ export const Route = createFileRoute("/watch/$id")({
         : []),
     ],
   }),
-  loader: async ({ params, context }): Promise<FanCodeMatch> => {
+  loader: async ({ params, context }) => {
     const feed = await context.queryClient.ensureQueryData({
       queryKey: ["fancode-feed"],
       queryFn: fetchFeed,
