@@ -13,27 +13,45 @@ export function HlsPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
+  // 0 = direct stream, 1 = server proxy fallback
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => setAttempt(0), [src]);
+
+  const resolved =
+    attempt === 0 ? src : `/api/public/hls?url=${encodeURIComponent(src)}`;
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
     setError(null);
     let hls: Hls | null = null;
+    let failed = false;
+
+    const fail = (msg: string) => {
+      if (failed) return;
+      failed = true;
+      if (attempt === 0) setAttempt(1);
+      else setError(msg);
+    };
 
     if (Hls.isSupported()) {
       hls = new Hls({ enableWorker: true });
-      hls.loadSource(src);
+      hls.loadSource(resolved);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.play().catch(() => setPlaying(false));
       });
       hls.on(Hls.Events.ERROR, (_e, data) => {
         if (data.fatal) {
-          setError("This stream is currently unavailable or has expired.");
+          fail(
+            "This stream can't be played right now — it may have expired or be unavailable in your region.",
+          );
         }
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
+      video.src = resolved;
+      video.addEventListener("error", () => fail("This stream can't be played right now."));
       video.play().catch(() => undefined);
     } else {
       setError("Your browser doesn't support HLS playback.");
@@ -49,7 +67,8 @@ export function HlsPlayer({
       video.removeEventListener("play", onPlay);
       video.removeEventListener("pause", onPause);
     };
-  }, [src]);
+  }, [src, resolved, attempt]);
+
 
   return (
     <div className="relative rounded-2xl overflow-hidden border border-border bg-gradient-to-b from-card to-background shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]">

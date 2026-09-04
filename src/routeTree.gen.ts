@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchIdRouteImport } from './routes/watch.$id'
+import { Route as ApiPublicHlsRouteImport } from './routes/api/public/hls'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const WatchIdRoute = WatchIdRouteImport.update({
   path: '/watch/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHlsRoute = ApiPublicHlsRouteImport.update({
+  id: '/api/public/hls',
+  path: '/api/public/hls',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/watch/$id': typeof WatchIdRoute
+  '/api/public/hls': typeof ApiPublicHlsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/watch/$id': typeof WatchIdRoute
+  '/api/public/hls': typeof ApiPublicHlsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/watch/$id': typeof WatchIdRoute
+  '/api/public/hls': typeof ApiPublicHlsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/watch/$id'
+  fullPaths: '/' | '/watch/$id' | '/api/public/hls'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/watch/$id'
-  id: '__root__' | '/' | '/watch/$id'
+  to: '/' | '/watch/$id' | '/api/public/hls'
+  id: '__root__' | '/' | '/watch/$id' | '/api/public/hls'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WatchIdRoute: typeof WatchIdRoute
+  ApiPublicHlsRoute: typeof ApiPublicHlsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hls': {
+      id: '/api/public/hls'
+      path: '/api/public/hls'
+      fullPath: '/api/public/hls'
+      preLoaderRoute: typeof ApiPublicHlsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WatchIdRoute: WatchIdRoute,
+  ApiPublicHlsRoute: ApiPublicHlsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
