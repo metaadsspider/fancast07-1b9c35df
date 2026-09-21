@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { decodeStreamUrl, encodeStreamUrl } from "@/lib/stream-token";
 
 const UA =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
@@ -6,7 +7,7 @@ const UA =
 const ALLOWED_HOST_SUFFIX = ".fancode.com";
 
 function proxied(target: string) {
-  return `/api/public/hls?url=${encodeURIComponent(target)}`;
+  return `/api/public/hls?s=${encodeStreamUrl(target)}`;
 }
 
 function rewritePlaylist(text: string, baseUrl: string) {
@@ -31,14 +32,18 @@ export const Route = createFileRoute("/api/public/hls")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const target = new URL(request.url).searchParams.get("url");
-        if (!target) return new Response("Missing url", { status: 400 });
+        // Accepts only the opaque token — raw URLs are never exposed.
+        const token = new URL(request.url).searchParams.get("s");
+        if (!token) return new Response("Missing token", { status: 400 });
+
+        const decoded = decodeStreamUrl(token);
+        if (!decoded) return new Response("Invalid token", { status: 400 });
 
         let parsed: URL;
         try {
-          parsed = new URL(target);
+          parsed = new URL(decoded);
         } catch {
-          return new Response("Invalid url", { status: 400 });
+          return new Response("Invalid token", { status: 400 });
         }
         if (
           parsed.protocol !== "https:" ||
