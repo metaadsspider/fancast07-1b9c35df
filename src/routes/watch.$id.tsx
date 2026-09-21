@@ -12,7 +12,7 @@ const watchLoader = async (opts: {
     queryKey: ["fancode-feed"],
     queryFn: fetchFeed,
   });
-  const match = feed.matches.find((m) => m.match_id === opts.params.id);
+  const match = feed.matches.find((m) => String(m.match_id) === opts.params.id);
   if (!match) throw notFound();
   return match;
 };
