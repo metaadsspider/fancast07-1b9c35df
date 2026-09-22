@@ -7,6 +7,8 @@ import {
   VolumeX,
   Settings,
   Loader2,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { relayUrl } from "@/lib/stream-token";
 
@@ -31,6 +33,7 @@ export function HlsPlayer({
   const [volume, setVolume] = useState(1);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [levels, setLevels] = useState<{ height: number; bitrate: number }[]>([]);
   const [level, setLevel] = useState(-1); // -1 = auto
   const [reloadKey, setReloadKey] = useState(0);
