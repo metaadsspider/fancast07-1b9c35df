@@ -144,18 +144,45 @@ export function HlsPlayer({
 
   const toggleFullscreen = useCallback(() => {
     const container = containerRef.current;
-    if (!container) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => undefined);
-    } else {
+    const video = videoRef.current as
+      | (HTMLVideoElement & {
+          webkitEnterFullscreen?: () => void;
+          webkitRequestFullscreen?: () => void;
+        })
+      | null;
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element | null;
+      webkitExitFullscreen?: () => void;
+    };
+
+    if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+      if (doc.exitFullscreen) doc.exitFullscreen().catch(() => undefined);
+      else doc.webkitExitFullscreen?.();
+      return;
+    }
+    if (container?.requestFullscreen) {
       container.requestFullscreen().catch(() => undefined);
+    } else if (video?.webkitEnterFullscreen) {
+      // iOS Safari: only native video fullscreen exists
+      video.webkitEnterFullscreen();
+    } else if (video?.webkitRequestFullscreen) {
+      video.webkitRequestFullscreen();
     }
   }, []);
 
   useEffect(() => {
-    const onFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
+    const sync = () => {
+      const doc = document as Document & {
+        webkitFullscreenElement?: Element | null;
+      };
+      setIsFullscreen(Boolean(doc.fullscreenElement || doc.webkitFullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", sync);
+    document.addEventListener("webkitfullscreenchange", sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("webkitfullscreenchange", sync);
+    };
   }, []);
 
   const pokeControls = useCallback(() => {
@@ -197,7 +224,11 @@ export function HlsPlayer({
       onMouseMove={pokeControls}
       onMouseLeave={() => playing && setControlsVisible(false)}
       onContextMenu={(e) => e.preventDefault()}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]"
+      className={`group relative overflow-hidden border border-border bg-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] ${
+        isFullscreen
+          ? "flex h-screen w-screen items-center justify-center rounded-none"
+          : "rounded-2xl"
+      }`}
     >
       <video
         ref={videoRef}
@@ -205,7 +236,11 @@ export function HlsPlayer({
         playsInline
         onClick={togglePlay}
         onContextMenu={(e) => e.preventDefault()}
-        className="aspect-video w-full cursor-pointer bg-black"
+        className={`cursor-pointer bg-black ${
+          isFullscreen
+            ? "h-full w-full object-contain"
+            : "aspect-video w-full"
+        }`}
         aria-label={title}
       />
 
