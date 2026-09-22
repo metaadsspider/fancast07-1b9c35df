@@ -182,10 +182,11 @@ export function HlsPlayer({
         e.preventDefault();
         togglePlay();
       } else if (e.key === "m") toggleMute();
+      else if (e.key === "f") toggleFullscreen();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePlay, toggleMute]);
+  }, [togglePlay, toggleMute, toggleFullscreen]);
 
   const ctrlBtn =
     "grid size-9 place-items-center rounded-lg text-foreground/80 transition-colors hover:bg-foreground/10 hover:text-foreground";
@@ -274,6 +275,18 @@ export function HlsPlayer({
           </div>
 
           <div className="flex-1" />
+
+          <button
+            className={ctrlBtn}
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          >
+            {isFullscreen ? (
+              <Minimize className="size-4" />
+            ) : (
+              <Maximize className="size-4" />
+            )}
+          </button>
 
           {levels.length > 1 && (
             <div className="relative">
